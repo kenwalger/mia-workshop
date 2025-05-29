@@ -1,6 +1,10 @@
 import os
 import nbformat
-from pgcontents.api import ContentsManager
+# Try to import ContentsManager from pgcontents.api, then directly from pgcontents
+try:
+    from pgcontents.api import ContentsManager
+except ImportError:
+    from pgcontents import ContentsManager # Fallback import
 from urllib.parse import urlparse
 
 def load_notebook():
