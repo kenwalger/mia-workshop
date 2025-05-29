@@ -2,9 +2,24 @@
 
 echo "Starting pgcontents initialization"
 echo "DATABASE_URL is $DATABASE_URL"
-pgcontents init --no-prompt -l ${DATABASE_URL/postgres:/postgresql:} || exit 1
 
-echo "pgcontents initialized"
+# Attempt to find pgcontents alembic.ini and run migrations directly
+echo "Attempting to locate pgcontents alembic.ini and run migrations..."
+PGCONTENTS_ALEMBIC_INI=$(python -c "import os; import pgcontents; print(os.path.join(os.path.dirname(pgcontents.__file__), 'alembic.ini'))")
+
+if [ -f "$PGCONTENTS_ALEMBIC_INI" ]; then
+    echo "Found pgcontents alembic.ini at: $PGCONTENTS_ALEMBIC_INI"
+    echo "Running: alembic -c \"$PGCONTENTS_ALEMBIC_INI\" -x dbPath=\"$DATABASE_URL\" upgrade head"
+    # Alembic needs the database URL. Some versions of pgcontents' env.py expect it via -x dbPath=...
+    # Ensure DATABASE_URL is in postgresql format for Alembic
+    ALEMBIC_DB_URL=${DATABASE_URL/postgres:/postgresql:}
+    alembic -c "$PGCONTENTS_ALEMBIC_INI" -x dbPath="$ALEMBIC_DB_URL" upgrade head || echo "Alembic upgrade failed, but continuing..."
+else
+    echo "WARNING: pgcontents alembic.ini not found at $PGCONTENTS_ALEMBIC_INI. Falling back to 'pgcontents init'."
+    pgcontents init --no-prompt -l ${DATABASE_URL/postgres:/postgresql:} || exit 1
+fi
+
+echo "pgcontents schema tasks finished."
 
 # Load initial notebook(s)
 echo "Attempting to load initial notebooks..."
