@@ -10,5 +10,6 @@ psycopg2-binary==2.9.9 # latest
 alembic==1.13.2 # latest
 jupyter_server #==1.23.5 # https://github.com/jupyter/notebook/issues/6702
 jupyterlab
-git+https://github.com/ipython-contrib/jupyter_contrib_nbextensions.git
+# git+https://github.com/ipython-contrib/jupyter_contrib_nbextensions.git
+# jupyter_nbextensions_configurator # This was likely pulled in by jupyter_contrib_nbextensions, explicitly commenting
 jupyterhub==5.2.1

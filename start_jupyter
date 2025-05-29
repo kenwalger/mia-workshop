@@ -12,12 +12,12 @@ python load_initial_notebooks.py
 echo "Initial notebook loading process finished."
 
 echo "Installing Jupyter extensions"
-jupyter contrib nbextension install --user
-echo "Extensions installed"
+# (jupyter contrib nbextension install --sys-prefix && \
+#  jupyter nbextensions_configurator enable --sys-prefix) || echo "Failed to install/enable some Jupyter extensions"
 
 echo "Enabling nbextensions configurator"
-jupyter nbextensions_configurator enable --user
-echo "Nbextensions configurator enabled"
+# jupyter nbextensions_configurator enable --user
+# echo "Nbextensions configurator enabled"
 
 # heroku will override $PS1 when specified as a config var, so we'll set it here to make the jupyter
 # terminal interface a little prettier:
