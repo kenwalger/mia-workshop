@@ -1,9 +1,12 @@
 # heroku-jupyter
 
-Use this application to deploy [Jupyter Notebook](https://jupyter.org/) to
-Heroku. If a postgres database is available,
-[pgcontents](https://github.com/quantopian/pgcontents) is used to power persistant notebook
-storage.
+Use this application to deploy [Jupyter Notebook](https://jupyter.org/) or [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/) to Heroku.
+
+This version uses the Heroku dyno's local filesystem to serve notebooks. This means:
+- The `notebooks/main.ipynb` included in this repository will be available when your app starts.
+- **Changes made to notebooks within the Jupyter UI will NOT be persistent across dyno restarts or redeploys.**
+- To save your work from a live session, you **must download** the notebook file(s) from the Jupyter UI.
+- To change the default notebook that loads on startup, you should modify `notebooks/main.ipynb` (or other files in the `notebooks/` directory) in your forked Git repository and then redeploy your Heroku app.
 
 If you want to customize your app, feel free to fork this repository.
 
@@ -18,7 +21,7 @@ First, click on this handy dandy button:
 
 Go through the form that the ^^ above button leads you to, and choose an app name, password, and whether to run Jupyter notebook or Jupyter lab. Then click the purple 'deploy app' button at the bottom of the form.
 
-It will take a couple of minutes for your app to deploy, and then you'll be able to click links to 1) manage your app, and 2) view your live, interactive jupyter application running on a heroku dyno (with persistant storage!).
+It will take a couple of minutes for your app to deploy, and then you'll be able to click links to 1) manage your app, and 2) view your live, interactive jupyter application running on a heroku dyno.
 
 Note: If you choose later to fork this repository, you can link your new repo to your heroku app afterwards.
 
@@ -51,11 +54,12 @@ heroku config:set JUPYTER_NOTEBOOK_PASSWORD=$JUPYTER_NOTEBOOK_PASSWORD -a $APP_N
 heroku config:set JUPYTER_NOTEBOOK_OR_LAB=$JUPYTER_NOTEBOOK_OR_LAB -a $APP_NAME
 
 # Specify the buildpacks it should use:
+# Note: The postgres addon is no longer strictly required for notebook storage but might be used by your notebooks.
 heroku buildpacks:add --index 1 heroku-community/apt -a $APP_NAME
 heroku buildpacks:add --index 2 heroku/python -a $APP_NAME
 
 # Attach the postgres addon:
-heroku addons:create heroku-postgresql:essential-1 --app $APP_NAME
+# heroku addons:create heroku-postgresql:essential-1 --app $APP_NAME # No longer required for notebook storage
 heroku addons:create heroku-inference:claude-4-sonnet --app $APP_NAME
 
 # Connect your app to the repo:
@@ -100,25 +104,27 @@ If you want to use a different Python version, you should set it in the `.python
 
 ## Loading and Using Notebooks
 
-The `notebooks/main.ipynb` file included in this repository is designed to be **automatically loaded** into your Jupyter environment when the application starts. This is handled by an internal script (`load_initial_notebooks.py`) that runs during the Heroku application startup process, regardless of whether you used the "Deploy to Heroku" button or performed a manual deployment.
+The `notebooks/main.ipynb` file (and any other files you place in the `notebooks/` directory in your Git repository) are served directly from the application's filesystem. When your Heroku app starts, JupyterLab (or Notebook) is configured to use the `/app/notebooks` directory as its root.
 
 This means:
-*   **Automatic Deployment (Heroku Button):** The `notebooks/main.ipynb` will be available in your Jupyter session once the app is deployed.
-*   **Manual Deployment (`git push heroku main`):** If you follow the manual deployment steps, `notebooks/main.ipynb` will also be automatically loaded and available.
+*   **Automatic Availability:** The `notebooks/main.ipynb` will be available in your Jupyter session once the app is deployed.
+*   **No Persistent Storage for UI Edits:** Any changes you make to notebooks (e.g., creating new notebooks, editing existing ones) directly within the JupyterLab/Notebook UI **will be lost** when the Heroku dyno restarts (which can happen due to deploys, daily cycling, or manual restarts).
+*   **Saving Your Work:** To save any work done in a live Jupyter session, you **must download the notebook files** (.ipynb) to your local computer using the Jupyter UI's "File > Download" (or similar) option.
 
-### Adding Your Own Notebooks (Post-Deployment)
+### Adding Your Own Notebooks for a Session
 
-If you wish to add *other* Jupyter notebooks to your running application:
-1.  Access your deployed Jupyter application in your web browser (the URL will be provided after deployment).
+If you wish to work with *other* Jupyter notebooks temporarily during a live session:
+1.  Access your deployed Jupyter application in your web browser.
 2.  Use the "Upload" button in the Jupyter interface to upload your `.ipynb` files from your local computer.
-3.  These notebooks will be saved persistently in the Heroku Postgres database by `pgcontents`.
+3.  **Remember:** These uploaded notebooks will also be lost if the dyno restarts. Download them if you make changes you want to keep.
 
-### Customizing the Auto-Loaded Notebook
+### Customizing the Default Notebook(s) for Future Deployments
 
-If you want to change the default notebook that is automatically loaded when the application starts:
-1.  **Fork this repository** to your own GitHub account.
+If you want to change the default notebook(s) that are available every time the application starts:
+1.  **Fork this repository** to your own GitHub account (if you haven't already).
 2.  In your forked repository, you can:
-    *   Replace the content of `notebooks/main.ipynb` with your own notebook content.
-    *   Or, if you want to load a notebook with a different filename or from a different path within your repository, modify the `notebook_path_in_repo` and `notebook_path_in_jupyter` variables at the top of the `load_initial_notebooks.py` script.
+    *   Modify or replace the content of `notebooks/main.ipynb`.
+    *   Add new `.ipynb` files or other supporting files to the `notebooks/` directory.
+    *   Remove files from the `notebooks/` directory.
 3.  Commit your changes to your fork.
-4.  Deploy your forked repository to Heroku. Your customized notebook will then be the one that's auto-loaded.
+4.  Deploy your forked repository to Heroku. Your customized set of notebooks will then be available on startup.
