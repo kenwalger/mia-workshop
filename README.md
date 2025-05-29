@@ -56,6 +56,7 @@ heroku buildpacks:add --index 2 heroku/python -a $APP_NAME
 
 # Attach the postgres addon:
 heroku addons:create heroku-postgresql:essential-1 --app $APP_NAME
+heroku addons:create heroku-inference:claude-4-sonnet --app $APP_NAME
 
 # Connect your app to the repo:
 heroku git:remote -a $APP_NAME
@@ -97,3 +98,27 @@ If you want to use a different Python version, you should set it in the `.python
 3.11
 ```
 
+## Loading and Using Notebooks
+
+The `notebooks/main.ipynb` file included in this repository is designed to be **automatically loaded** into your Jupyter environment when the application starts. This is handled by an internal script (`load_initial_notebooks.py`) that runs during the Heroku application startup process, regardless of whether you used the "Deploy to Heroku" button or performed a manual deployment.
+
+This means:
+*   **Automatic Deployment (Heroku Button):** The `notebooks/main.ipynb` will be available in your Jupyter session once the app is deployed.
+*   **Manual Deployment (`git push heroku main`):** If you follow the manual deployment steps, `notebooks/main.ipynb` will also be automatically loaded and available.
+
+### Adding Your Own Notebooks (Post-Deployment)
+
+If you wish to add *other* Jupyter notebooks to your running application:
+1.  Access your deployed Jupyter application in your web browser (the URL will be provided after deployment).
+2.  Use the "Upload" button in the Jupyter interface to upload your `.ipynb` files from your local computer.
+3.  These notebooks will be saved persistently in the Heroku Postgres database by `pgcontents`.
+
+### Customizing the Auto-Loaded Notebook
+
+If you want to change the default notebook that is automatically loaded when the application starts:
+1.  **Fork this repository** to your own GitHub account.
+2.  In your forked repository, you can:
+    *   Replace the content of `notebooks/main.ipynb` with your own notebook content.
+    *   Or, if you want to load a notebook with a different filename or from a different path within your repository, modify the `notebook_path_in_repo` and `notebook_path_in_jupyter` variables at the top of the `load_initial_notebooks.py` script.
+3.  Commit your changes to your fork.
+4.  Deploy your forked repository to Heroku. Your customized notebook will then be the one that's auto-loaded.
