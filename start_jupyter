@@ -1,56 +1,27 @@
 #!/usr/bin/env bash
 
-echo "Starting pgcontents initialization"
-echo "DATABASE_URL is $DATABASE_URL"
-
-# Attempt to find pgcontents alembic.ini and run migrations directly
-echo "Attempting to locate pgcontents alembic.ini and run migrations..."
-PGCONTENTS_ALEMBIC_INI=$(python -c "import os; import pgcontents; print(os.path.join(os.path.dirname(pgcontents.__file__), 'alembic.ini'))")
-
-if [ -f "$PGCONTENTS_ALEMBIC_INI" ]; then
-    echo "Found pgcontents alembic.ini at: $PGCONTENTS_ALEMBIC_INI"
-    echo "Running: alembic -c \"$PGCONTENTS_ALEMBIC_INI\" -x dbPath=\"$DATABASE_URL\" upgrade head"
-    # Alembic needs the database URL. Some versions of pgcontents' env.py expect it via -x dbPath=...
-    # Ensure DATABASE_URL is in postgresql format for Alembic
-    ALEMBIC_DB_URL=${DATABASE_URL/postgres:/postgresql:}
-    alembic -c "$PGCONTENTS_ALEMBIC_INI" -x dbPath="$ALEMBIC_DB_URL" upgrade head || echo "Alembic upgrade failed, but continuing..."
-else
-    echo "WARNING: pgcontents alembic.ini not found at $PGCONTENTS_ALEMBIC_INI. Falling back to 'pgcontents init'."
-    pgcontents init --no-prompt -l ${DATABASE_URL/postgres:/postgresql:} || exit 1
-fi
-
-echo "pgcontents schema tasks finished."
-
-# Load initial notebook(s)
-echo "Attempting to load initial notebooks..."
-python load_initial_notebooks.py
-echo "Initial notebook loading process finished."
-
-echo "Installing Jupyter extensions"
-# (jupyter contrib nbextension install --sys-prefix && \
-#  jupyter nbextensions_configurator enable --sys-prefix) || echo "Failed to install/enable some Jupyter extensions"
-
-echo "Enabling nbextensions configurator"
-# jupyter nbextensions_configurator enable --user
-# echo "Nbextensions configurator enabled"
-
 # heroku will override $PS1 when specified as a config var, so we'll set it here to make the jupyter
 # terminal interface a little prettier:
 export PS1='\[\033[01;34m\]\w\[\033[00m\]\$'
 
 echo "Starting Jupyter ${JUPYTER_NOTEBOOK_OR_LAB}"
-# NOTE: With allow_origin='*', anyone with the URL and password can potentially access your notebook,
-# so be careful w/ the URL and password. Don't put sensitive data up here.
 
 # Determine the correct command
+# Default to 'lab' if JUPYTER_NOTEBOOK_OR_LAB is not set or is 'notebook'
+# as we are focusing on JupyterLab for this setup.
+JUPYTER_COMMAND="lab"
 if [ "$JUPYTER_NOTEBOOK_OR_LAB" = "jupyterhub-singleuser" ]; then
-    CMD="jupyterhub-singleuser"
-else
-    CMD="jupyter $JUPYTER_NOTEBOOK_OR_LAB"
+    JUPYTER_COMMAND="jupyterhub-singleuser"
+# elif [ "$JUPYTER_NOTEBOOK_OR_LAB" = "notebook" ]; then
+# JUPYTER_COMMAND="notebook" # Could also default to lab here too
 fi
 
-# Start Jupyter
-$CMD \
+# Start JupyterLab, explicitly setting the notebook directory
+# to /app/notebooks where main.ipynb will be located.
+# The /app directory is the root of your Heroku slug.
+echo "Launching: jupyter $JUPYTER_COMMAND --notebook-dir=/app/notebooks ..."
+jupyter $JUPYTER_COMMAND \
+    --notebook-dir=/app/notebooks \
     --no-browser --ip=0.0.0.0 --port=$PORT \
     --ServerApp.allow_origin='*' --ServerApp.allow_credentials=True \
     $JUPYTER_NOTEBOOK_ARGS

@@ -2,14 +2,14 @@ ipython==7.32.0 # https://github.com/NetApp/netapp-dataops-toolkit/issues/13
 # ipython==8.27.0 # fixed I think?
 notebook>=7
 nbformat
-git+https://github.com/quantopian/pgcontents.git # https://github.com/quantopian/pgcontents/issues/80
-# git+https://github.com/addisonwurtz/pgcontents.git
-# pgcontents==0.6
-sqlalchemy[postgresql]==1.4.1 # https://stackoverflow.com/questions/62688256/sqlalchemy-exc-nosuchmoduleerror-cant-load-plugin-sqlalchemy-dialectspostgre
-psycopg2-binary==2.9.9 # latest
-alembic==1.13.2 # latest
+# git+https://github.com/quantopian/pgcontents.git # DEACTIVATED - Switching to local file storage
+# git+https://github.com/addisonwurtz/pgcontents.git # DEACTIVATED
+# pgcontents==0.6 # DEACTIVATED
+# sqlalchemy[postgresql]==1.4.1 # DEACTIVATED - No longer using pgcontents
+# psycopg2-binary==2.9.9 # DEACTIVATED - No longer using pgcontents
+# alembic==1.13.2 # DEACTIVATED - No longer using pgcontents
 jupyter_server #==1.23.5 # https://github.com/jupyter/notebook/issues/6702
 jupyterlab
-# git+https://github.com/ipython-contrib/jupyter_contrib_nbextensions.git
-# jupyter_nbextensions_configurator # This was likely pulled in by jupyter_contrib_nbextensions, explicitly commenting
+# git+https://github.com/ipython-contrib/jupyter_contrib_nbextensions.git # Incompatible with Notebook 7+
+# jupyter_nbextensions_configurator # Incompatible with Notebook 7+
 jupyterhub==5.2.1
