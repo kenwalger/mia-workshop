@@ -18,8 +18,15 @@ except ImportError as e_api:
         print("Successfully imported ContentsManager directly from pgcontents")
     except ImportError as e_direct:
         print(f"Failed to import directly from pgcontents: {e_direct}")
-        print("CRITICAL: Could not import ContentsManager. Exiting notebook load script.")
-        # exit(1) # Optionally exit if it's critical and no other action can be taken
+        print("Attempting to import ContentsManager from pgcontents.manager...")
+        try:
+            from pgcontents.manager import ContentsManager as CM_manager
+            ContentsManager = CM_manager
+            print("Successfully imported ContentsManager from pgcontents.manager")
+        except ImportError as e_manager:
+            print(f"Failed to import from pgcontents.manager: {e_manager}")
+            print("CRITICAL: Could not import ContentsManager. Exiting notebook load script.")
+            # exit(1) # Optionally exit if it's critical and no other action can be taken
 
 if ContentsManager is None:
     print("Aborting notebook load: ContentsManager could not be imported.")
