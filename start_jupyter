@@ -6,6 +6,11 @@ pgcontents init --no-prompt -l ${DATABASE_URL/postgres:/postgresql:} || exit 1
 
 echo "pgcontents initialized"
 
+# Load initial notebook(s)
+echo "Attempting to load initial notebooks..."
+python load_initial_notebooks.py
+echo "Initial notebook loading process finished."
+
 echo "Installing Jupyter extensions"
 jupyter contrib nbextension install --user
 echo "Extensions installed"

@@ -1,6 +1,7 @@
 ipython==7.32.0 # https://github.com/NetApp/netapp-dataops-toolkit/issues/13
 # ipython==8.27.0 # fixed I think?
 notebook>=7
+nbformat
 #git+https://github.com/quantopian/pgcontents.git # https://github.com/quantopian/pgcontents/issues/80
 git+https://github.com/addisonwurtz/pgcontents.git
 # pgcontents==0.6
